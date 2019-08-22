@@ -11,7 +11,7 @@ Now build
 go build -o cfn-workshop-backend-server
 ```
 
-## Run the app. Easy as pie :pie:
+## Run the app. Easy as pie :smile:
 ```
 ./cfn-workshop-backend-server
 ```

@@ -1,17 +1,26 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
+
+var dbName = readEnvFile("dbName")
+var dbPort = readEnvFile("dbPort")
+var dbUser = readEnvFile("dbUser")
+var dbPasswd = readEnvFile("dbPasswd")
+var dbHost = readEnvFile("dbHost")
 
 func getHealthStatus(w http.ResponseWriter, r *http.Request) {
 	var version = "0.0.1"
@@ -27,13 +36,7 @@ func getHealthStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func dbClient() *sql.DB {
-	dbDriver := "mysql"
-	dbUser := "root"
-	dbPasswd := "5ecurePa$$word"
-	dbHost := "127.0.0.1"
-	dbPort := "3306"
-	dbName := "cfn_workshop"
-	db, err := sql.Open(dbDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPasswd, dbHost, dbPort, dbName))
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPasswd, dbHost, dbPort, dbName))
 
 	if err != nil {
 		panic(err.Error())
@@ -56,6 +59,21 @@ func dbInsert(w http.ResponseWriter, r *http.Request) {
 		log.Printf("INSERT -> First name: %s, Last name: %s, Email: %s", firstname, lastname, email)
 	}
 	defer db.Close()
+}
+
+func readEnvFile(varName string) string {
+	file, err := os.Open(".env")
+	if err != nil {
+		panic(err.Error())
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), varName) {
+			return strings.Split(scanner.Text(), "=")[1]
+		}
+	}
+	return ""
 }
 
 func main() {
